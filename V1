@@ -1,4 +1,4 @@
----@vars
+--@vars
 local runService = game:GetService('RunService')
 local coregui = game:GetService('CoreGui')
 local players = game:GetService('Players')
