@@ -1,162 +1,303 @@
-local Settings = {
-    TeamCheck = true, -- Overules Color
-    Red = Color3.fromRGB(255, 0, 0),
-    Green = Color3.fromRGB(0, 255, 0),
-    Color = Color3.fromRGB(255, 0, 0),
-    TeamColor = false
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Evade" .. Fluent.Version,
+    SubTitle = "by Jude",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl -- Used when there's no MinimizeKeybind
+})
+
+--Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main", Icon = "" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+    Misc = Window:AddTab({ Title = "Misc", Icon = "" }),     -- Added a new tab called "Misc"
+    Credits = Window:AddTab({ Title = "Credits", Icon = "" }) -- Added a new tab called "Credits"
 }
 
---// Locals
-local player = game:GetService("Players").LocalPlayer
-local camera = game:GetService("Workspace").CurrentCamera
-local mouse = player:GetMouse()
 
-local function NewQuad(color)
-    local quad = Drawing.new("Quad")
-    quad.Visible = false
-    quad.PointA = Vector2.new(0,0)
-    quad.PointB = Vector2.new(0,0)
-    quad.PointC = Vector2.new(0,0)
-    quad.PointD = Vector2.new(0,0)
-    quad.Color = color
-    quad.Filled = true
-    quad.Thickness = 1
-    quad.Transparency = 0.25
-    return quad
+local Options = Fluent.Options
+
+do
+    local Players = game:GetService("Players")
+    local player = Players.LocalPlayer  -- Get the local player
+
+    local playerName = player.Name  -- Get the player's name
+
+    Fluent:Notify({
+        Title = "Welcome Back",
+        Content = "Welcome back, " .. playerName,
+        SubContent = "We're glad to see you again!", -- Optional, you can customize this
+        Duration = 5 -- Set to nil to make the notification not disappear
+    })
 end
 
-local function Colorize(color, lib)
-    for i, v in pairs(lib) do
-        v.Color = color
-    end
-end
+Tabs.Main:AddParagraph({
+    Title = "Main",
+    Content = ""
+})
 
-local function ESP(object, plr)
-    local part = object
-    --// Quads for 3D box (6)
-    local quads = {
-        quad1 = NewQuad(Settings.Color),
-        quad2 = NewQuad(Settings.Color),
-        quad3 = NewQuad(Settings.Color),
-        quad4 = NewQuad(Settings.Color),
-        quad5 = NewQuad(Settings.Color),
-        quad6 = NewQuad(Settings.Color)
-    }
+Tabs.Main:AddButton({
+    Title = "God Mode",
+    Description = "Activates god mode for the player!",
+    Callback = function()
+        Window:Dialog({
+            Title = "God Mode",
+            Content = "Are you sure you want to activate God Mode?",
+            Buttons = {
+                {
+                    Title = "Confirm",
+                    Callback = function()
+                        local Players = game:GetService("Players")
+                        local player = Players.LocalPlayer  -- Get the local player
 
-    --// Updates ESP in render loop
-    local function Updater()
-        local connection
-        connection = game:GetService("RunService").RenderStepped:Connect(function()
-            if plr.Character ~= nil and plr.Character:FindFirstChild("HumanoidRootPart") ~= nil and plr.Character:FindFirstChild("Humanoid") ~= nil and plr.Character.Humanoid.Health > 0 and plr.Character:FindFirstChild(object.Name) ~= nil then
-                    local partpos, onscreen = camera:WorldToViewportPoint(part.Position)
-                    if onscreen then
-                        local size_X = part.Size.X/2
-                        local size_Y = part.Size.Y/2
-                        local size_Z = part.Size.Z/2
-                        
-                        local Top1 = camera:WorldToViewportPoint((part.CFrame * CFrame.new(-size_X, size_Y, -size_Z)).p)
-                        local Top2 = camera:WorldToViewportPoint((part.CFrame * CFrame.new(-size_X, size_Y, size_Z)).p)
-                        local Top3 = camera:WorldToViewportPoint((part.CFrame * CFrame.new(size_X, size_Y, size_Z)).p)
-                        local Top4 = camera:WorldToViewportPoint((part.CFrame * CFrame.new(size_X, size_Y, -size_Z)).p)
-    
-                        local Bottom1 = camera:WorldToViewportPoint((part.CFrame * CFrame.new(-size_X, -size_Y, -size_Z)).p)
-                        local Bottom2 = camera:WorldToViewportPoint((part.CFrame * CFrame.new(-size_X, -size_Y, size_Z)).p)
-                        local Bottom3 = camera:WorldToViewportPoint((part.CFrame * CFrame.new(size_X, -size_Y, size_Z)).p)
-                        local Bottom4 = camera:WorldToViewportPoint((part.CFrame * CFrame.new(size_X, -size_Y, -size_Z)).p)
-    
-                        --// Top:
-                        quads.quad1.PointA = Vector2.new(Top1.X, Top1.Y)
-                        quads.quad1.PointB = Vector2.new(Top2.X, Top2.Y)
-                        quads.quad1.PointC = Vector2.new(Top3.X, Top3.Y)
-                        quads.quad1.PointD = Vector2.new(Top4.X, Top4.Y)
-    
-                        --//Bottom:
-                        quads.quad2.PointA = Vector2.new(Bottom1.X, Bottom1.Y)
-                        quads.quad2.PointB = Vector2.new(Bottom2.X, Bottom2.Y)
-                        quads.quad2.PointC = Vector2.new(Bottom3.X, Bottom3.Y)
-                        quads.quad2.PointD = Vector2.new(Bottom4.X, Bottom4.Y)
-    
-                        --//Sides:
-                        quads.quad3.PointA = Vector2.new(Top1.X, Top1.Y)
-                        quads.quad3.PointB = Vector2.new(Top2.X, Top2.Y)
-                        quads.quad3.PointC = Vector2.new(Bottom2.X, Bottom2.Y)
-                        quads.quad3.PointD = Vector2.new(Bottom1.X, Bottom1.Y)
-                        
-                        quads.quad4.PointA = Vector2.new(Top2.X, Top2.Y)
-                        quads.quad4.PointB = Vector2.new(Top3.X, Top3.Y)
-                        quads.quad4.PointC = Vector2.new(Bottom3.X, Bottom3.Y)
-                        quads.quad4.PointD = Vector2.new(Bottom2.X, Bottom2.Y)
-                        
-                        quads.quad5.PointA = Vector2.new(Top3.X, Top3.Y)
-                        quads.quad5.PointB = Vector2.new(Top4.X, Top4.Y)
-                        quads.quad5.PointC = Vector2.new(Bottom4.X, Bottom4.Y)
-                        quads.quad5.PointD = Vector2.new(Bottom3.X, Bottom3.Y)
-    
-                        quads.quad6.PointA = Vector2.new(Top4.X, Top4.Y)
-                        quads.quad6.PointB = Vector2.new(Top1.X, Top1.Y)
-                        quads.quad6.PointC = Vector2.new(Bottom1.X, Bottom1.Y)
-                        quads.quad6.PointD = Vector2.new(Bottom4.X, Bottom4.Y)
-    
-                        if Settings.Team_Check then
-                            if plr.TeamColor == player.TeamColor then
-                                local group_color = Settings.Green
-                                Colorize(group_color, quads)
-                            else 
-                                local group_color = Settings.Red
-                                Colorize(group_color, quads)
-                            end
-                        else 
-                            local group_color = Settings.Color
-                            Colorize(group_color, quads)
-                        end
-
-                        if Settings.TeamColor then
-                            Colorize(plr.TeamColor.Color, quads)
-                        end
-    
-                        for u, x in pairs(quads) do
-                            x.Visible = true
-                        end
-                    else 
-                        for u, x in pairs(quads) do
-                            x.Visible = false
-                        end
+                        local Character = player.Character or player.CharacterAdded:Wait()
+                        local Hum = Character:WaitForChild("Humanoid")
+                        Hum.Parent = nil
+                        Hum.Parent = Character
                     end
-            else 
-                for u, x in pairs(quads) do
-                    x.Visible = false
-                end
-                if game.Players:FindFirstChild(plr.Name) == nil then
-                    connection:Disconnect()
-                end
-            end
-        end)
+                }
+            }
+        })
     end
-    coroutine.wrap(Updater)()
-end
+})
 
-for i, v in pairs(game:GetService("Players"):GetPlayers()) do
-    spawn(function()
-        if v.Name ~= player.Name then
-            repeat wait() until v.Character ~= nil and v.Character:FindFirstChild("Humanoid") ~= nil and v.Character:FindFirstChild("HumanoidRootPart") ~= nil and v.Character.Humanoid.Health > 0 and v.Character:FindFirstChild("Head") ~= nil
-            for u, x in pairs(v.Character:GetChildren()) do
-                if x:IsA("MeshPart") or x.Name == "Head" or x.Name == "Left Arm" or x.Name == "Right Arm" or x.Name == "Right Leg" or x.Name == "Left Leg" or x.Name == "Torso" then
-                    coroutine.wrap(ESP)(x, v)
-                end
+Tabs.Main:AddButton({
+    Title = "Respawn",
+    Description = "Respawn the player without Robux's!",
+    Callback = function()
+        local Players = game:GetService("Players")
+        local player = Players.LocalPlayer
+        local Events = game:GetService("ReplicatedStorage"):FindFirstChild("Events")
+
+        if Events then
+            local Reset = Events:FindFirstChild("Reset")
+            local Respawn = Events:FindFirstChild("Respawn")
+
+            if Reset and Respawn then
+                Reset:FireServer()
+                task.wait(2)
+                Respawn:FireServer()
             end
         end
-    end)
-end
+    end
+})
 
-game.Players.PlayerAdded:Connect(function(newplr)
-    spawn(function()
-        if newplr.Name ~= player.Name then
-            repeat wait() until newplr.Character ~= nil and newplr.Character:FindFirstChild("Humanoid") ~= nil and newplr.Character:FindFirstChild("HumanoidRootPart") ~= nil and newplr.Character.Humanoid.Health > 0 and newplr.Character:FindFirstChild("Head") ~= nil
-            for u, x in pairs(newplr.Character:GetChildren()) do
-                if x:IsA("MeshPart") or x.Name == "Head" or x.Name == "Left Arm" or x.Name == "Right Arm" or x.Name == "Right Leg" or x.Name == "Left Leg" or x.Name == "Torso" then
-                    coroutine.wrap(ESP)(x, newplr)
-                end
-            end
+Tabs.Main:AddButton({
+    Title = "Anti AFK",
+    Description = "Prevent being marked as AFK",
+    Callback = function()
+        local player = game:GetService("Players").LocalPlayer
+        for _,v in pairs(getconnections(player.Idled)) do
+            v:Disable()
         end
-    end)
+    end
+})
+
+local Toggle = Tabs.Main:AddToggle("ESP", {Title = "ESP", Default = false })
+
+Toggle:OnChanged(function()
+    if Options.ESP.Value then
+        -- If toggle is turned on, execute the ESP function
+        Simple_Create(player.Character.HumanoidRootPart, "ESP", "ESP", 10) -- You may need to adjust the arguments here
+    else
+        -- If toggle is turned off, execute the function to clear ESP
+        ClearESP("ESP")
+    end
 end)
+
+Options.ESP:SetValue(false) -- Set the default value of the ESP toggle to false
+
+function Simple_Create(base, name, trackername, studs)
+    local bb = Instance.new('BillboardGui', game.CoreGui)
+    bb.Adornee = base
+    bb.ExtentsOffset = Vector3.new(0,1,0)
+    bb.AlwaysOnTop = true
+    bb.Size = UDim2.new(0,6,0,6)
+    bb.StudsOffset = Vector3.new(0,1,0)
+    bb.Name = trackername
+
+    local frame = Instance.new('Frame', bb)
+    frame.ZIndex = 10
+    frame.BackgroundTransparency = 0.3
+    frame.Size = UDim2.new(1,0,1,0)
+    frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+
+    local txtlbl = Instance.new('TextLabel', bb)
+    txtlbl.ZIndex = 10
+    txtlbl.BackgroundTransparency = 1
+    txtlbl.Position = UDim2.new(0,0,0,-48)
+    txtlbl.Size = UDim2.new(1,0,10,0)
+    txtlbl.Font = 'ArialBold'
+    txtlbl.FontSize = 'Size12'
+    txtlbl.Text = name
+    txtlbl.TextStrokeTransparency = 0.5
+    txtlbl.TextColor3 = Color3.fromRGB(255, 0, 0)
+
+    local txtlblstud = Instance.new('TextLabel', bb)
+    txtlblstud.ZIndex = 10
+    txtlblstud.BackgroundTransparency = 1
+    txtlblstud.Position = UDim2.new(0,0,0,-35)
+    txtlblstud.Size = UDim2.new(1,0,10,0)
+    txtlblstud.Font = 'ArialBold'
+    txtlblstud.FontSize = 'Size12'
+    txtlblstud.Text = tostring(studs) .. " Studs"
+    txtlblstud.TextStrokeTransparency = 0.5
+    txtlblstud.TextColor3 = Color3.new(255,255,255)
+end
+
+function ClearESP(espname)
+    for _,v in pairs(game.CoreGui:GetChildren()) do
+        if v.Name == espname and v:IsA('BillboardGui') then
+            v:Destroy()
+        end
+    end
+end
+
+-- Walk Speed Slider
+local WalkSpeedSlider = Tabs.Main:AddSlider("WalkSpeedSlider", {
+    Title = "Walk Speed",
+    Description = "Adjust the walk speed",
+    Default = 16,
+    Min = 0,
+    Max = 50,
+    Rounding = 1,
+    Callback = function(Value)
+        local Character = game.Players.LocalPlayer.Character
+        if Character then
+            Character.Humanoid:SetAttribute("RealSpeed", tonumber(Value))
+        end
+    end
+})
+
+-- Jump Power Slider
+local JumpPowerSlider = Tabs.Main:AddSlider("JumpPowerSlider", {
+    Title = "Jump Power",
+    Description = "Adjust the jump power",
+    Default = 50,
+    Min = 0,
+    Max = 250,
+    Rounding = 1,
+    Callback = function(Value)
+        local Character = game.Players.LocalPlayer.Character
+        if Character then
+            Character.Humanoid:SetAttribute("RealJumpHeight", tonumber(Value))
+        end
+    end
+})
+
+-- Set initial values
+WalkSpeedSlider:SetValue(16)
+JumpPowerSlider:SetValue(50)
+
+Tabs.Server:AddParagraph({
+    Title = "Server Trolling",
+    Content = "A little troll."
+})
+
+Tabs.Server:AddButton({
+    Title = "Crash Server",
+    Description = "Attempt to crash the server",
+    Callback = function()
+        local Players = game:GetService("Players")
+        local player = Players.LocalPlayer
+        local Events = game:GetService("ReplicatedStorage"):FindFirstChild("Events")
+
+        if Events then
+            local Reset = Events:FindFirstChild("Reset")
+            local Respawn = Events:FindFirstChild("Respawn")
+            Fluent:Notify({
+                Title = "Server Trolling",
+                Content = "You have trolled the server",
+                Duration = 5
+            })
+            while task.wait() do
+                if Reset and Respawn then
+                    Reset:FireServer()
+                    Respawn:FireServer()
+                end
+            end
+        end
+    end
+})
+
+Tabs.Server:AddParagraph({
+    Title = "Settings UI Color",
+    Content = "Customize the UI color."
+})
+
+local Colorpicker = Tabs.Server:AddColorpicker("Colorpicker", {
+    Title = "Colorpicker",
+    Default = Color3.fromRGB(96, 205, 255)
+})
+
+Colorpicker:OnChanged(function()
+    print("Colorpicker changed:", Colorpicker.Value)
+end)
+
+Colorpicker:SetValueRGB(Color3.fromRGB(0, 255, 140))
+
+Tabs.Misc:AddParagraph({
+    Title = "Misc",
+    Content = "Miscellaneous options."
+})
+
+Tabs.Misc:AddButton({
+    Title = "Alpha Skin",
+    Description = "Give Alpha Skin",
+    Callback = function()
+        local Events = game:GetService("ReplicatedStorage"):FindFirstChild("Events")
+        if Events then
+            Events.UI.Purchase:InvokeServer("Skins", "AlphaTester")
+        end
+    end
+})
+
+Tabs.Misc:AddButton({
+    Title = "Boombox Giver",
+    Description = "Give Boombox Skin",
+    Callback = function()
+        local Events = game:GetService("ReplicatedStorage"):FindFirstChild("Events")
+        if Events then
+            Events.UI.Purchase:InvokeServer("Skins", "Boombox")
+        end
+    end
+})
+
+Tabs.Misc:AddButton({
+    Title = "Dev Test Emote",
+    Description = "Give Dev Test Emote",
+    Callback = function()
+        local Events = game:GetService("ReplicatedStorage"):FindFirstChild("Events")
+        if Events then
+            Events.UI.Purchase:InvokeServer("Emotes", "Test")
+        end
+    end
+})
+
+local Toggle = Tabs.Misc:AddToggle("LoopGodMode", {Title = "Loop God Mode", Default = false})
+
+Toggle:OnChanged(function()
+    local Players = game:GetService("Players")
+    local player = Players.LocalPlayer
+    local Character = player.Character or player.CharacterAdded:Wait()
+    local Hum = Character:WaitForChild("Humanoid")
+    local bool = Options.LoopGodMode.Value
+
+    if bool then
+        Hum.Parent = nil
+        Hum.Parent = Character
+    end
+end)
+
+Options.LoopGodMode:SetValue(false)
+
+Tabs.Credits:AddParagraph({
+    Title = "Credits",
+    Content = "This was made by Jude and Corrupted. Also credits to Velocity."
+})
