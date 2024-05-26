@@ -1,3 +1,576 @@
+---@vars
+local runService = game:GetService('RunService')
+local coregui = game:GetService('CoreGui')
+local players = game:GetService('Players')
+local localPlayer = players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+local esp = {
+    -- settings
+    enabled = false,
+    teamcheck = true,
+    visiblecheck = false,
+    outlines = true,
+    limitdistance = false,
+    shortnames = false,
+
+    maxchar = 4,
+    maxdistance = 1200,
+    fadefactor = 20,
+    arrowradius = 500,
+    arrowsize = 20,
+    arrowinfo = false,
+
+    -- instances
+    --\ @teammates
+    team_chams = { false, Color3.new(1, 1, 1), Color3.new(1, 1, 1), .25, .75, true },
+    --
+    team_boxes = { false, Color3.new(), Color3.new(), 0.95 },
+    team_healthbar = { false, Color3.new(), Color3.new() },
+    team_kevlarbar = { false, Color3.new(), Color3.new() },
+    team_arrow = { false, Color3.new(), 0.5 },
+    --
+    team_names = { false, Color3.new()},
+    team_weapon = { false, Color3.new()},
+    team_distance = false,
+    team_health = false,
+
+    --\ @enemies
+    enemy_chams = { false, Color3.new(1, 1, 1), Color3.new(1, 1, 1), .25, .75, true },
+    --
+    enemy_boxes = { false, Color3.new(), Color3.new(), 0.95 },
+    enemy_healthbar = { false, Color3.new(), Color3.new() },
+    enemy_kevlarbar = { false, Color3.new(), Color3.new() },
+    enemy_arrow = { false, Color3.new(), 0.5 },
+    --
+    enemy_names = { false, Color3.new()},
+    enemy_weapon = { false, Color3.new()},
+    enemy_distance = false,
+    enemy_health = false,
+
+    --\ @priority
+    priority_chams = { false, Color3.new(1, 1, 1), Color3.new(1, 1, 1), .25, .75, true },
+    --
+    priority_boxes = { false, Color3.new(), Color3.new(), 0.95 },
+    priority_healthbar = { false, Color3.new(), Color3.new() },
+    priority_kevlarbar = { false, Color3.new(), Color3.new() },
+    priority_arrow = { false, Color3.new(), 0.5 },
+    --
+    priority_names = { false, Color3.new()},
+    priority_weapon = { false, Color3.new()},
+    priority_distance = false,
+    priority_health = false,
+
+    font = 'Plex',
+    textsize = 13,
+
+    -- tables
+    players = {},
+    priority_players = {},
+    connections = {},
+    visiblecheckparams = {}
+}
+
+-- index optimisations
+local NEWCF     = CFrame.new
+local NEWVEC2   = Vector2.new
+local NEWCOLOR3 = Color3.new
+
+local MIN       = math.min
+local MAX       = math.max
+local ATAN2     = math.atan2
+local CLAMP     = math.clamp
+local FLOOR     = math.floor
+local SIN       = math.sin
+local COS       = math.cos
+local RAD       = math.rad
+
+local LEN       = string.len
+local LOWER     = string.lower
+local SUB       = string.sub
+
+local TINSERT   = table.insert
+local TFIND     = table.find
 
 
-local v0=tonumber;local v1=string.byte;local v2=string.char;local v3=string.sub;local v4=string.gsub;local v5=string.rep;local v6=table.concat;local v7=table.insert;local v8=math.ldexp;local v9=getfenv or function() return _ENV;end ;local v10=setmetatable;local v11=pcall;local v12=select;local v13=unpack or table.unpack ;local v14=tonumber;local function v15(v16,v17,...) local v18=0;local v19;local v20;local v21;local v22;local v23;local v24;local v25;local v26;local v27;local v28;local v29;local v30;while true do if (v18==1) then function v21(v31,v32,v33) if v33 then local v81=0;local v82;while true do if (v81==0) then v82=(v31/(2^(v32-(2 -1))))%((5 -3)^(((v33-(1 -0)) -(v32-(2 -1))) + (620 -(555 + 64)))) ;return v82-(v82%(932 -(857 + 74))) ;end end else local v83=((1447 -(282 + 595)) -((2004 -(1523 + 114)) + 201))^(v32-(928 -(193 + 21 + (1015 -302)))) ;return (((v31%(v83 + v83))>=v83) and ((1066 -(68 + 997)) + 0)) or (0 + 0) ;end end v22=nil;function v22() local v34=117 -(32 + 85) ;local v35;while true do if (v34==(1271 -(226 + 1044))) then return v35;end if (v34==(0 -0)) then v35=v1(v16,v19,v19);v19=v19 + ((2285 -1327) -(892 + 65)) ;v34=1;end end end v23=nil;v18=2;end if (v18==2) then function v23() local v36,v37=v1(v16,v19,v19 + (3 -1) );v19=v19 + 2 ;return (v37 * (469 -213)) + v36 ;end v24=nil;function v24() local v38,v39,v40,v41=v1(v16,v19,v19 + ((260 + 93) -(87 + 263)) );v19=v19 + (184 -(67 + 113)) ;return (v41 * (12302277 + 4474939)) + (v40 * (160901 -95365)) + (v39 * 256) + v38 ;end v25=nil;v18=3;end if (v18==5) then v30=nil;function v30(v42,v43,v44) local v45=v42[1];local v46=v42[2];local v47=v42[3];return function(...) local v66=v45;local v67=v46;local v68=v47;local v69=v28;local v70=1;local v71= -1;local v72={};local v73={...};local v74=v12("#",...) -1 ;local v75={};local v76={};for v84=0,v74 do if (v84>=v68) then v72[v84-v68 ]=v73[v84 + 1 ];else v76[v84]=v73[v84 + 1 ];end end local v77=(v74-v68) + 1 ;local v78;local v79;while true do v78=v66[v70];v79=v78[1];if (v79<=3) then if (v79<=1) then if (v79>0) then local v101=0;local v102;local v103;local v104;local v105;while true do if (v101==1) then v71=(v104 + v102) -1 ;v105=0;v101=2;end if (2==v101) then for v156=v102,v71 do local v157=0;while true do if (v157==0) then v105=v105 + 1 ;v76[v156]=v103[v105];break;end end end break;end if (v101==0) then v102=v78[2];v103,v104=v69(v76[v102](v13(v76,v102 + 1 ,v78[3])));v101=1;end end else do return;end end elseif (v79==2) then v76[v78[2]]();else local v106=v78[2];v76[v106]=v76[v106](v13(v76,v106 + 1 ,v71));end elseif (v79<=5) then if (v79==4) then local v108=v78[2];local v109=v76[v78[3]];v76[v108 + 1 ]=v109;v76[v108]=v109[v78[4]];else v76[v78[2]]=v44[v78[3]];end elseif (v79>6) then v76[v78[2]]=v78[3];else local v117=0;local v118;local v119;local v120;local v121;local v122;while true do if (v117==4) then v70=v70 + 1 ;v78=v66[v70];v122=v78[2];v76[v122]=v76[v122](v13(v76,v122 + 1 ,v71));v70=v70 + 1 ;v78=v66[v70];v117=5;end if (0==v117) then v118=nil;v119,v120=nil;v121=nil;v122=nil;v76[v78[2]]=v44[v78[3]];v70=v70 + 1 ;v117=1;end if (v117==1) then v78=v66[v70];v76[v78[2]]=v44[v78[3]];v70=v70 + 1 ;v78=v66[v70];v122=v78[2];v121=v76[v78[3]];v117=2;end if (v117==3) then v78=v66[v70];v122=v78[2];v119,v120=v69(v76[v122](v13(v76,v122 + 1 ,v78[3])));v71=(v120 + v122) -1 ;v118=0;for v158=v122,v71 do local v159=0;while true do if (v159==0) then v118=v118 + 1 ;v76[v158]=v119[v118];break;end end end v117=4;end if (v117==5) then v76[v78[2]]();v70=v70 + 1 ;v78=v66[v70];do return;end break;end if (v117==2) then v76[v122 + 1 ]=v121;v76[v122]=v121[v78[4]];v70=v70 + 1 ;v78=v66[v70];v76[v78[2]]=v78[3];v70=v70 + 1 ;v117=3;end end end v70=v70 + 1 ;end end;end return v30(v29(),{},v17)(...);end if (4==v18) then v28=nil;function v28(...) return {...},v12("#",...);end v29=nil;function v29() local v48=0;local v49;local v50;local v51;local v52;local v53;local v54;while true do local v80=0 -0 ;while true do if (v80~=(578 -(386 + 192))) then else if (v48==1) then local v95=0;local v96;while true do if (v95==0) then v96=0;while true do if (v96==0) then local v160=1206 -(696 + 510) ;while true do if ((0 -0)==v160) then v52={v49,v50,nil,v51};v53=v24();v160=3 -2 ;end if (v160==1) then v96=375 -(123 + 251) ;break;end end end if (v96==(4 -3)) then v54={};v48=700 -(208 + 490) ;break;end end break;end end end if (v48~=0) then else v49={};v50={};v51={};v48=1 + 0 ;end v80=1 + 0 ;end if (v80==(837 -(660 + 176))) then if (v48==3) then local v97=0 + 0 ;while true do if ((202 -(14 + 188))~=v97) then else for v124=1,v24() do v50[v124-(676 -(534 + 141)) ]=v29();end return v52;end end end if (v48~=2) then else local v98=0 + 0 ;while true do if (v98==(1 + 0)) then for v126=1,v24() do local v127=0;local v128;local v129;local v130;while true do if (v127~=(1 + 0)) then else v130=nil;while true do if (0~=v128) then else v129=0;v130=nil;v128=1;end if ((1 -0)==v128) then while true do if (v129~=0) then else v130=v22();if (v21(v130,1 -0 ,1)==0) then local v169=0;local v170;local v171;local v172;local v173;local v174;local v175;while true do if (v169~=0) then else v170=0;v171=nil;v169=1;end if (v169~=(5 -3)) then else v174=nil;v175=nil;v169=2 + 1 ;end if (v169==(1 + 0)) then v172=nil;v173=nil;v169=398 -(115 + 281) ;end if ((6 -3)==v169) then while true do if (v170~=0) then else local v178=0;while true do if (v178==(1 + 0)) then v170=2 -1 ;break;end if (v178~=0) then else v171=0 -0 ;v172=nil;v178=868 -(550 + 317) ;end end end if (v170==(1 -0)) then local v179=0;while true do if (v179~=0) then else v173=nil;v174=nil;v179=1;end if (1==v179) then v170=2 -0 ;break;end end end if ((5 -3)~=v170) then else v175=nil;while true do if (v171~=(286 -(134 + 151))) then else local v181=1665 -(970 + 695) ;while true do if (v181==(1 -0)) then v171=2;break;end if (v181==0) then v174=nil;v175=nil;v181=1;end end end if (v171~=(1992 -(582 + 1408))) then else while true do if (v172==0) then local v183=0;local v184;while true do if (v183~=(0 -0)) then else v184=0;while true do if (v184~=(1 -0)) then else v172=3 -2 ;break;end if (v184~=0) then else v173=v21(v130,2,3);v174=v21(v130,4,1830 -(1195 + 629) );v184=1;end end break;end end end if (v172~=3) then else if (v21(v174,3,3)==(1 -0)) then v175[245 -(187 + 54) ]=v54[v175[784 -(162 + 618) ]];end v49[v126]=v175;break;end if (v172==2) then local v186=0 + 0 ;local v187;while true do if (v186==(0 + 0)) then v187=0;while true do if ((0 -0)~=v187) then else if (v21(v174,1 -0 ,1 + 0 )==1) then v175[1638 -(1373 + 263) ]=v54[v175[2]];end if (v21(v174,2,1002 -(451 + 549) )~=1) then else v175[1 + 2 ]=v54[v175[4 -1 ]];end v187=1 -0 ;end if (v187~=(1385 -(746 + 638))) then else v172=2 + 1 ;break;end end break;end end end if (v172==1) then local v188=0 -0 ;local v189;while true do if (v188==0) then v189=341 -(218 + 123) ;while true do if (0~=v189) then else v175={v23(),v23(),nil,nil};if (v173==0) then local v196=560 -(306 + 254) ;local v197;local v198;local v199;while true do if (v196==(1 + 0)) then v199=nil;while true do if (v197==(0 -0)) then local v202=0;while true do if (1==v202) then v197=1;break;end if (v202==(1467 -(899 + 568))) then v198=0 + 0 ;v199=nil;v202=2 -1 ;end end end if (v197~=(604 -(268 + 335))) then else while true do if (v198==(290 -(60 + 230))) then v199=0;while true do if (v199==0) then v175[3]=v23();v175[4]=v23();break;end end break;end end break;end end break;end if (v196==0) then v197=572 -(426 + 146) ;v198=nil;v196=1 + 0 ;end end elseif (v173==(1457 -(282 + 1174))) then v175[814 -(569 + 242) ]=v24();elseif (v173==(5 -3)) then v175[3]=v24() -((1 + 1)^(1040 -(706 + 318))) ;elseif (v173==3) then local v203=0;local v204;local v205;while true do if ((1252 -(721 + 530))~=v203) then else while true do if (v204~=(1271 -(945 + 326))) then else v205=0;while true do if (v205==(0 -0)) then v175[3]=v24() -(2^(15 + 1)) ;v175[704 -(271 + 429) ]=v23();break;end end break;end end break;end if (v203==(0 + 0)) then v204=0;v205=nil;v203=1501 -(1408 + 92) ;end end end v189=1;end if (v189~=(1087 -(461 + 625))) then else v172=2;break;end end break;end end end end break;end if (v171==0) then local v182=1288 -(993 + 295) ;while true do if (v182==(1 + 0)) then v171=1;break;end if (v182==(1171 -(418 + 753))) then v172=0 + 0 ;v173=nil;v182=1;end end end end break;end end break;end end end break;end end break;end end break;end if (v127==0) then v128=0;v129=nil;v127=1;end end end v48=1 + 2 ;break;end if (v98~=0) then else for v131=1,v53 do local v132=0 + 0 ;local v133;local v134;local v135;while true do if (v132==(0 + 0)) then local v161=0;while true do if (v161==1) then v132=530 -(406 + 123) ;break;end if (v161==0) then v133=1769 -(1749 + 20) ;v134=nil;v161=1 + 0 ;end end end if (v132==(1323 -(1249 + 73))) then v135=nil;while true do if (v133==(0 + 0)) then local v166=0;local v167;while true do if (v166==(1145 -(466 + 679))) then v167=0;while true do if (v167==1) then v133=2 -1 ;break;end if (v167==0) then local v176=0;local v177;while true do if (v176==(0 -0)) then v177=1900 -(106 + 1794) ;while true do if (v177~=1) then else v167=1;break;end if (v177==(0 + 0)) then local v180=0 + 0 ;while true do if (v180==(0 -0)) then v134=v22();v135=nil;v180=1;end if ((2 -1)~=v180) then else v177=1;break;end end end end break;end end end end break;end end end if ((115 -(4 + 110))~=v133) then else if (v134==(585 -(57 + 527))) then v135=v22()~=(1427 -(41 + 1386)) ;elseif (v134==(105 -(17 + 86))) then v135=v25();elseif (v134==3) then v135=v26();end v54[v131]=v135;break;end end break;end end end v52[3 + 0 ]=v22();v98=1 -0 ;end end end break;end end end end v18=5;end if (v18==3) then function v25() local v55=v24();local v56=v24();local v57=2 -1 ;local v58=(v21(v56,167 -(71 + 51 + 44) ,(22 + 12) -14 ) * ((6 -4)^(27 + 5))) + v55 ;local v59=v21(v56,21,5 + 26 );local v60=((v21(v56,64 -32 )==(66 -((880 -(20 + 830)) + 28 + 7))) and  -1) or ((127 -(116 + 10)) + 0) ;if (v59==0) then if (v58==(1257 -(1043 + 214))) then return v60 * ((0 + 0) -0) ;else v59=1213 -(323 + 889) ;v57=0 -0 ;end elseif (v59==2047) then return ((v58==(580 -(361 + 219))) and (v60 * ((321 -(53 + 267))/(0 + 0)))) or (v60 * NaN) ;end return v8(v60,v59-((2174 -(542 + 196)) -((32 -17) + 398)) ) * (v57 + (v58/((984 -(18 + 964))^(195 -143)))) ;end v26=nil;function v26(v61) local v62=(1121 -(118 + 1003)) + 0 ;local v63;local v64;while true do if (v62==2) then v64={};for v93=1 + 0 , #v63 do v64[v93]=v2(v1(v3(v63,v93,v93)));end v62=2 + 1 ;end if (v62==3) then return v6(v64);end if (v62==((0 -0) -0)) then v63=nil;if  not v61 then v61=v24();if (v61==(0 -0)) then return "";end end v62=1552 -(1126 + (802 -(142 + 235))) ;end if (v62==1) then v63=v3(v16,v19,(v19 + v61) -(406 -(118 + 287)) );v19=v19 + v61 ;v62=(31 -24) -5 ;end end end v27=v24;v18=4;end if (v18==0) then v19=1;v20=nil;v16=v4(v3(v16,5),"..",function(v65) if (v1(v65,2)==79) then v20=v0(v3(v65,1,1));return "";else local v87=0;local v88;while true do if (v87==0) then v88=v2(v0(v65,16));if v20 then local v99=0;local v100;while true do if (v99==1) then return v100;end if (v99==0) then v100=v5(v88,v20);v20=nil;v99=1;end end else return v88;end break;end end end end);v21=nil;v18=1;end end end return v15("LOL!043O00030A3O006C6F6164737472696E6703043O0067616D6503073O00482O747047657403213O00682O7470733A2O2F706173746562696E2E636F6D2F7261772F416D36457665366300083O0012063O00013O00122O000100023O00202O00010001000300122O000300046O000100039O0000026O000100016O00017O00",v9(),...);
+-- functions
+function esp:draw(a, b)
+    local instance = Drawing.new(a)
+    if type(b) == 'table' then
+        for property, value in next, b do
+            instance[property] = value
+        end
+    end
+    return instance
+end
+function esp:create(a, b)
+    local instance = Instance.new(a)
+    if type(b) == 'table' then
+        for property, value in next, b do
+            instance[property] = value
+        end
+    end
+    return instance
+end
+local folder = esp:create('Folder', { Parent = coregui })
+function esp:setproperties(a, b)
+    for i, v in next, b do
+        a[i] = v;
+    end
+    return a
+end
+function esp:raycast(a, b, c)
+    c = type(c) == 'table' and c or {}
+    local params = RaycastParams.new();
+    params.IgnoreWater = true;
+    params.FilterType = Enum.RaycastFilterType.Blacklist;
+    params.FilterDescendantsInstances = c;
+
+    local ray = workspace:Raycast(a, b, params);
+    if ray ~= nil then
+        if ray.Instance.Transparency >= .250 then
+            TINSERT(c, ray.Instance);
+            local newray = self:raycast(a,b,c)
+            if newray ~= nil then
+                ray = newray
+            end
+        end
+    end
+    return ray
+end
+
+function esp.getcharacter(plr)
+    return plr.Character
+end
+
+function esp.checkalive(plr)
+    if not plr then plr = localPlayer end
+    local pass = false
+    if (plr.Character and plr.Character:FindFirstChild('Humanoid') and plr.Character:FindFirstChild('Head') and plr.Character:FindFirstChild('LeftUpperArm') and plr.Character.Humanoid.Health > 0 and plr.Character.LeftUpperArm.Transparency == 0) then
+        pass = true
+    end
+    return pass
+end
+
+function esp.checkteam(plr, bool)
+    if not plr then plr = localPlayer end
+    return plr ~= localPlayer and bool or plr.Team ~= localPlayer.Team
+end
+
+function esp:checkvisible(instance, origin, params)
+    if not params then params = {} end
+    local hit = self:raycast(camera.CFrame.p, (origin.Position - camera.CFrame.p).unit * 500, { unpack(params), camera, localPlayer.Character })
+    return (hit and hit.Instance:IsDescendantOf(instance)) and true or false
+end
+
+function esp:check(plr)
+	if plr == players.LocalPlayer then return false; end;
+	local pass = true;
+	local character = self.getcharacter(plr);
+	if not self.checkalive(plr) then
+		pass = false;
+	elseif esp.limitdistance and (character.PrimaryPart.CFrame.p - workspace.CurrentCamera.CFrame.p).magnitude > esp.maxdistance then
+		pass = false;
+	elseif esp.teamcheck and not self.checkteam(plr, false) then
+		pass = false;
+    elseif esp.visiblecheck and not self:checkvisible(character, character.Head, esp.visiblecheckparams) then
+        pass = false
+	end;
+	return pass;
+end;
+
+function esp:returnoffsets(x, y, minY, z)
+    return {
+        NEWCF(x, y, z),
+        NEWCF(-x, y, z),
+        NEWCF(x, y, -z),
+        NEWCF(-x, y, -z),
+        NEWCF(x, -minY, z),
+        NEWCF(-x, -minY, z),
+        NEWCF(x, -minY, -z),
+        NEWCF(-x, -minY, -z)
+    };
+end;
+
+function esp:returntriangleoffsets(triangle)
+    local minX = MIN(triangle.PointA.X, triangle.PointB.X, triangle.PointC.X)
+    local minY = MIN(triangle.PointA.Y, triangle.PointB.Y, triangle.PointC.Y)
+    local maxX = MAX(triangle.PointA.X, triangle.PointB.X, triangle.PointC.X)
+    local maxY = MAX(triangle.PointA.Y, triangle.PointB.Y, triangle.PointC.Y)
+    return minX, minY, maxX, maxY
+end
+
+function esp:convertnumrange(val, oldmin, oldmax, newmin, newmax)
+    return (val - oldmin) * (newmax - newmin) / (oldmax - oldmin) + newmin;
+end;
+
+function esp:fadeviadistance(data)
+    return data.limit and 1 - CLAMP(self:convertnumrange(FLOOR(((data.cframe.p - camera.CFrame.p)).magnitude), (data.maxdistance - data.factor), data.maxdistance, 0, 1), 0, 1) or 1;
+end;
+
+function esp:floorvector(vector)
+    return NEWVEC2(FLOOR(vector.X),FLOOR(vector.Y))
+end
+function esp:rotatevector2(v2, r)
+	local c = COS(r);
+	local s = SIN(r);
+	return NEWVEC2(c * v2.X - s * v2.Y, s * v2.X + c * v2.Y);
+end;
+--
+function esp:add(plr)
+    if plr == localPlayer then return end
+    local objs = {
+        box_fill = esp:draw('Square', { Filled = true, Thickness = 1 }),
+        box_outline = esp:draw('Square', { Filled = false, Thickness = 1 }),
+        box = esp:draw('Square', { Filled = false, Thickness = 1, Color = NEWCOLOR3(1,1,1) }),
+        arrow_name_outline = esp:draw('Text', { Color = NEWCOLOR3(), Font = 2, Size = 13 }),
+        arrow_name = esp:draw('Text', { Color = NEWCOLOR3(1,1,1), Font = 2, Size = 13 }),
+        arrow_bar_outline = esp:draw('Square', { Filled = true, Thickness = 1 }),
+        arrow_bar_inline = esp:draw('Square', { Filled = true, Thickness = 1, Color = NEWCOLOR3(0.3, 0.3, 0.3) }),
+        arrow_bar = esp:draw('Square', { Filled = true, Thickness = 1, Color = NEWCOLOR3(1,1,1) }),
+        arrow_kevlarbar_outline = esp:draw('Square', { Filled = true, Thickness = 1 }),
+        arrow_kevlarbar_inline = esp:draw('Square', { Filled = true, Thickness = 1, Color = NEWCOLOR3(0.3, 0.3, 0.3) }),
+        arrow_kevlarbar = esp:draw('Square', { Filled = true, Thickness = 1, Color = NEWCOLOR3(1,1,1) }),
+        arrow = esp:draw('Triangle', { Filled = true, Thickness = 1, });
+        -- bars
+        bar_outline = esp:draw('Square', { Filled = true, Thickness = 1 }),
+        bar_inline = esp:draw('Square', { Filled = true, Thickness = 1, Color = NEWCOLOR3(0.3, 0.3, 0.3) }),
+        bar = esp:draw('Square', { Filled = true, Thickness = 1, Color = NEWCOLOR3(1,1,1) }),
+        kevlarbar_outline = esp:draw('Square', { Filled = true, Thickness = 1 }),
+        kevlarbar_inline = esp:draw('Square', { Filled = true, Thickness = 1, Color = NEWCOLOR3(0.3, 0.3, 0.3) }),
+        kevlarbar = esp:draw('Square', { Filled = true, Thickness = 1, Color = NEWCOLOR3(1,1,1) }),
+        -- text
+        name_outline = esp:draw('Text', { Color = NEWCOLOR3(), Font = 2, Size = 13 }),
+        name = esp:draw('Text', { Color = NEWCOLOR3(1,1,1), Font = 2, Size = 13 }),
+        distance_outline = esp:draw('Text', { Color = NEWCOLOR3(), Font = 2, Size = 13 }),
+        distance = esp:draw('Text', { Color = NEWCOLOR3(1,1,1), Font = 2, Size = 13 }),
+        weapon_outline = esp:draw('Text', { Color = NEWCOLOR3(), Font = 2, Size = 13 }),
+        weapon = esp:draw('Text', { Color = NEWCOLOR3(1,1,1), Font = 2, Size = 13 }),
+        health = esp:draw('Text', { Color = NEWCOLOR3(1,1,1), Font = 2, Size = 13, Center = true })
+    }
+    local chams = { ins = esp:create('Highlight', { Name = plr.Name }) }
+    function chams:Remove() chams.ins:Destroy() end
+    objs['chams'] = chams
+    self.players[plr.Name] = objs
+end
+function esp:disable(plr)
+    local objects = self.players[plr.Name];
+    if objects then
+        for i, v in next, objects do
+            if i == 'chams' then
+                v.ins.Enabled = false
+            else
+                v.Visible = false
+            end
+        end;
+    end;
+end;
+function esp:remove(plr)
+    local objects = self.players[plr.Name];
+    if objects then
+        for i, v in next, objects do
+            v:Remove()
+        end;
+    end;
+    self.players[plr.Name] = nil;
+end;
+-- connections
+function esp:connect(a, callback)
+    local c = a:Connect(callback)
+    TINSERT(self.connections, c)
+    return c
+end
+
+function esp:bindtorenderstep(name, priority, callback)
+    local a = {}
+    function a:Disconnect()
+        runService:UnbindFromRenderStep(name)
+    end
+    runService:BindToRenderStep(name, priority, callback)
+    TINSERT(self.connections, a)
+    return a
+end
+
+function esp:clearconnections()
+    for _, c in next, self.connections do
+        c:Disconnect()
+    end
+end
+
+function esp:update()
+    for plr, drawing in next, esp.players do
+        local player = players:FindFirstChild(plr)
+        if not player then esp.players[plr] = nil continue end
+        if esp.enabled and esp.checkalive(player) then
+            local character = esp.getcharacter(player)
+            local playerName = LEN(plr) > esp.maxchar and esp.shortnames and SUB(plr, 0, esp.maxchar) .. '..' or plr
+            local pass = esp:check(player)
+            local distance = tostring(FLOOR((character.PrimaryPart.CFrame.p - camera.CFrame.p).Magnitude  / 3))  .. 'm'
+            local _, onScreen = camera:WorldToViewportPoint(character['HumanoidRootPart'].Position)
+            local centerMassPos = character['HumanoidRootPart'].CFrame
+            local transparency = esp:fadeviadistance({
+                limit = esp.limitdistance,
+                cframe = centerMassPos,
+                maxdistance = esp.maxdistance,
+                factor = esp.fadefactor
+            })
+            local kevlar = 0
+            if player:FindFirstChild('Kevlar') then
+                kevlar = player.Kevlar.Value
+            end
+            local health = FLOOR(character.Humanoid.Health)
+
+            local flag = 'team_'
+            if esp.checkteam(player, false) then
+                flag = 'enemy_'
+            end
+
+            if TFIND(esp.priority_players, player) then
+                flag = 'priority_'
+            end
+
+            if not (pass and onScreen) then
+                esp:disable(player)
+            end
+
+            -- arrows
+            drawing.arrow.Visible = esp[ flag .. 'arrow'][1] and pass;
+            if drawing.arrow.Visible then
+                local proj = camera.CFrame:PointToObjectSpace(centerMassPos.p);
+                local ang = ATAN2(proj.Z, proj.X);
+                local dir = NEWVEC2(COS(ang), SIN(ang));
+                local a = (dir * esp.arrowradius * .5) + camera.ViewportSize / 2;
+                local b, c = a - esp:rotatevector2(dir, RAD(30)) * esp.arrowsize, a - esp:rotatevector2(dir, (-RAD(30))) * esp.arrowsize;
+                drawing.arrow.PointA = a;
+                drawing.arrow.PointB = b;
+                drawing.arrow.PointC = c;
+                drawing.arrow.Color = esp[ flag .. 'arrow'][2];
+                drawing.arrow.Transparency = not onScreen and esp[ flag .. 'arrow'][3] or 0;
+                if esp.arrowinfo then
+                    local smallestX, smallestY, biggestX, biggestY = esp:returntriangleoffsets(drawing.arrow)
+                    -- healthbar
+                    drawing.arrow_bar.Visible = not onScreen and drawing.arrow.Visible and esp[ flag .. 'healthbar'][1]
+                    drawing.arrow_bar_inline.Visible = drawing.arrow_bar.Visible
+                    drawing.arrow_bar_outline.Visible = esp.outlines and drawing.arrow_bar.Visible
+                    if drawing.arrow_bar.Visible then
+                        drawing.arrow_bar.Color = esp[ flag .. 'healthbar'][3]:Lerp(esp[ flag .. 'healthbar'][2], health / 100)
+                        drawing.arrow_bar.Size = esp:floorvector(NEWVEC2(1, ( - health / 100 * ( biggestY - smallestY + 2)) + 3))
+                        drawing.arrow_bar.Position = esp:floorvector(NEWVEC2(smallestX - 3, smallestY + drawing.arrow_bar_outline.Size.Y))
+                        drawing.arrow_bar.Transparency = transparency
+                        drawing.arrow_bar_inline.Size = esp:floorvector(NEWVEC2(1, ( - 1 * ( biggestY - smallestY + 2)) + 3))
+                        drawing.arrow_bar_inline.Position = drawing.arrow_bar.Position
+                        drawing.arrow_bar_inline.Transparency = transparency
+                        drawing.arrow_bar_outline.Size = esp:floorvector(NEWVEC2(1, biggestY - smallestY))
+                        drawing.arrow_bar_outline.Position = esp:floorvector(NEWVEC2(smallestX - 2, smallestY + 1))
+                        drawing.arrow_bar_outline.Transparency = transparency
+                    end
+
+                    -- kevlarbar
+                    drawing.arrow_kevlarbar.Visible = not onScreen and drawing.arrow.Visible and esp[ flag .. 'kevlarbar'][1]
+                    drawing.arrow_kevlarbar_inline.Visible = drawing.arrow_kevlarbar.Visible
+                    drawing.arrow_kevlarbar_outline.Visible = esp.outlines and drawing.arrow_kevlarbar.Visible
+                    if drawing.arrow_kevlarbar.Visible then
+                        drawing.arrow_kevlarbar.Color = esp[ flag .. 'kevlarbar'][3]:Lerp(esp[ flag .. 'kevlarbar'][2], kevlar / 100)
+                        drawing.arrow_kevlarbar.Size = esp:floorvector(NEWVEC2(( kevlar / 100 * ( biggestX - smallestX)), 1))
+                        drawing.arrow_kevlarbar.Position = esp:floorvector(NEWVEC2(smallestX, biggestY + 2))
+                        drawing.arrow_kevlarbar.Transparency = transparency
+                        drawing.arrow_kevlarbar_inline.Size = esp:floorvector(NEWVEC2((biggestX - smallestX), 1))
+                        drawing.arrow_kevlarbar_inline.Position = drawing.arrow_kevlarbar.Position
+                        drawing.arrow_kevlarbar_inline.Transparency = transparency
+                        drawing.arrow_kevlarbar_outline.Size = drawing.arrow_kevlarbar_inline.Size
+                        drawing.arrow_kevlarbar_outline.Position = esp:floorvector(NEWVEC2(smallestX + 1, biggestY + 3))
+                        drawing.arrow_kevlarbar_outline.Transparency = transparency
+                    end
+
+                    -- name
+                    drawing.arrow_name.Visible = not onScreen and drawing.arrow.Visible and esp[ flag .. 'names'][1]
+                    drawing.arrow_name_outline.Visible = esp.outlines and drawing.arrow_name.Visible
+                    if drawing.arrow_name.Visible then
+                        drawing.arrow_name.Text = esp[ flag .. 'distance'] and '['..distance..'] '.. playerName or playerName
+                        drawing.arrow_name.Font = Drawing.Fonts[esp.font]
+                        drawing.arrow_name.Size = esp.textsize
+                        drawing.arrow_name.Color = esp[ flag .. 'names'][2]
+                        drawing.arrow_name.Position = esp:floorvector(NEWVEC2(smallestX + (biggestX - smallestX) / 2 - (drawing.arrow_name.TextBounds.X / 2), smallestY - drawing.arrow_name.TextBounds.Y - 2))
+                        drawing.arrow_name.Transparency = transparency
+                        drawing.arrow_name_outline.Text = drawing.arrow_name.Text
+                        drawing.arrow_name_outline.Font = drawing.arrow_name.Font
+                        drawing.arrow_name_outline.Size = drawing.arrow_name.Size
+                        drawing.arrow_name_outline.Position = drawing.arrow_name.Position + NEWVEC2(1,1)
+                        drawing.arrow_name_outline.Transparency = transparency
+                    end
+                end
+            end;
+
+            -- chams
+            drawing.chams.ins.Enabled = esp[ flag .. 'chams'][1] and pass
+            drawing.chams.ins.Adornee = esp[ flag .. 'chams'][1] and player.Character or nil
+            drawing.chams.ins.Parent = folder
+            if drawing.chams.ins.Enabled then
+                drawing.chams.ins.FillColor = esp[ flag .. 'chams'][2]
+                drawing.chams.ins.OutlineColor = esp[ flag .. 'chams'][3]
+                drawing.chams.ins.FillTransparency = esp[ flag .. 'chams'][4]
+                drawing.chams.ins.OutlineTransparency = esp[ flag .. 'chams'][5]
+                drawing.chams.ins.DepthMode = esp[ flag .. 'chams'][6] and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
+            end;
+
+            if not pass or (not onScreen) then
+                continue
+            end
+
+            local smallestX, biggestX = math.huge, -math.huge
+            local smallestY, biggestY = math.huge, -math.huge
+
+            local y = (centerMassPos.p - character['Head'].Position).magnitude + character['Head'].Size.Y / 2
+            local x1 = (centerMassPos.p - character['RightHand'].Position).magnitude
+            local x2 = (centerMassPos.p - character['LeftHand'].Position).magnitude
+            local minY1 = (centerMassPos.p - character['RightFoot'].Position).magnitude
+            local minY2 = (centerMassPos.p - character['LeftFoot'].Position).magnitude
+
+            local minY = minY1 > minY2 and minY1 or minY2
+            local minX = x1 < x2 and x1 or x2
+
+            local offsets = esp:returnoffsets(minX, y, minY, character['HumanoidRootPart'].Size.Z / 2)
+
+            for i, v in next, offsets do
+                local pos = camera:WorldToViewportPoint(centerMassPos * v.p)
+                if smallestX > pos.X then smallestX = pos.X end
+                if biggestX < pos.X then biggestX = pos.X end
+                if smallestY > pos.Y then smallestY = pos.Y end
+                if biggestY < pos.Y then biggestY = pos.Y end
+            end
+
+            -- box
+            drawing.box.Visible = esp[ flag .. 'boxes'][1]
+            drawing.box_fill.Visible = drawing.box.Visible
+            drawing.box_outline.Visible = esp.outlines and drawing.box.Visible
+            if drawing.box.Visible then
+                drawing.box.Color = esp[ flag .. 'boxes'][2]
+                drawing.box.Size = esp:floorvector(NEWVEC2(biggestX - smallestX, biggestY - smallestY))
+                drawing.box.Position = esp:floorvector(NEWVEC2(smallestX, smallestY))
+                drawing.box.Transparency = transparency
+                --
+                drawing.box_fill.Size = drawing.box.Size
+                drawing.box_fill.Position = drawing.box.Position
+                drawing.box_fill.Color = esp[ flag .. 'boxes'][3]
+                drawing.box_fill.Transparency = MIN(esp[ flag .. 'boxes'][4], transparency)
+                --
+                drawing.box_outline.Size = drawing.box.Size
+                drawing.box_outline.Position = drawing.box.Position + NEWVEC2(1,1)
+                drawing.box_outline.Transparency = transparency
+            end
+
+            -- healthbar
+            drawing.bar.Visible = esp[ flag .. 'healthbar'][1]
+            drawing.bar_inline.Visible = drawing.bar.Visible
+            drawing.bar_outline.Visible = esp.outlines and drawing.bar.Visible
+            if drawing.bar.Visible then
+                drawing.bar.Color = esp[ flag .. 'healthbar'][3]:Lerp(esp[ flag .. 'healthbar'][2], health / 100)
+                drawing.bar.Size = esp:floorvector(NEWVEC2(1, ( - health / 100 * ( biggestY - smallestY + 2)) + 3))
+                drawing.bar.Position = esp:floorvector(NEWVEC2(smallestX - 3, smallestY + drawing.bar_outline.Size.Y))
+                drawing.bar.Transparency = transparency
+                drawing.bar_inline.Size = esp:floorvector(NEWVEC2(1, ( - 1 * ( biggestY - smallestY + 2)) + 3))
+                drawing.bar_inline.Position = drawing.bar.Position
+                drawing.bar_inline.Transparency = transparency
+                drawing.bar_outline.Size = esp:floorvector(NEWVEC2(1, biggestY - smallestY))
+                drawing.bar_outline.Position = esp:floorvector(NEWVEC2(smallestX - 2, smallestY + 1))
+                drawing.bar_outline.Transparency = transparency
+            end
+
+            -- kevlarbar
+            drawing.kevlarbar.Visible = esp[ flag .. 'kevlarbar'][1]
+            drawing.kevlarbar_inline.Visible = drawing.kevlarbar.Visible
+            drawing.kevlarbar_outline.Visible = esp.outlines and drawing.kevlarbar.Visible
+            if drawing.kevlarbar.Visible then
+                drawing.kevlarbar.Color = esp[ flag .. 'kevlarbar'][3]:Lerp(esp[ flag .. 'kevlarbar'][2], kevlar / 100)
+                drawing.kevlarbar.Size = esp:floorvector(NEWVEC2(( kevlar / 100 * ( biggestX - smallestX)), 1))
+                drawing.kevlarbar.Position = esp:floorvector(NEWVEC2(smallestX, biggestY + 2))
+                drawing.kevlarbar.Transparency = transparency
+                drawing.kevlarbar_inline.Size = esp:floorvector(NEWVEC2(( 1 * ( biggestX - smallestX)), 1))
+                drawing.kevlarbar_inline.Position = drawing.kevlarbar.Position
+                drawing.kevlarbar_inline.Transparency = transparency
+                drawing.kevlarbar_outline.Size = esp:floorvector(NEWVEC2(biggestX - smallestX, 1))
+                drawing.kevlarbar_outline.Position = esp:floorvector(NEWVEC2(smallestX + 1, biggestY + 3))
+                drawing.kevlarbar_outline.Transparency = transparency
+            end
+
+            -- distance
+            drawing.distance.Visible = not esp[ flag .. 'names'][1] and esp[ flag .. 'distance']
+            drawing.distance_outline.Visible = esp.outlines and drawing.distance.Visible
+            if drawing.distance.Visible then
+                drawing.distance.Text = '['..distance..']'
+                drawing.distance.Font = Drawing.Fonts[esp.font]
+                drawing.distance.Size = esp.textsize
+                drawing.distance.Color = esp[ flag .. 'names'][2]
+                drawing.distance.Position = esp:floorvector(NEWVEC2(smallestX + (biggestX - smallestX) / 2 - (drawing.distance.TextBounds.X / 2), smallestY - drawing.distance.TextBounds.Y - 2))
+                drawing.distance.Transparency = transparency
+                drawing.distance_outline.Text = drawing.distance.Text
+                drawing.distance_outline.Font = drawing.distance.Font
+                drawing.distance_outline.Size = drawing.distance.Size
+                drawing.distance_outline.Position = drawing.distance.Position + NEWVEC2(1,1)
+                drawing.distance_outline.Transparency = transparency
+            end
+
+            -- name
+            drawing.name.Visible = esp[ flag .. 'names'][1]
+            drawing.name_outline.Visible = esp.outlines and drawing.name.Visible
+            if drawing.name.Visible then
+                drawing.name.Text = esp[ flag .. 'distance'] and '['..distance..'] '..playerName or playerName
+                drawing.name.Font = Drawing.Fonts[esp.font]
+                drawing.name.Size = esp.textsize
+                drawing.name.Color = esp[ flag .. 'names'][2]
+                drawing.name.Position = esp:floorvector(NEWVEC2(smallestX + (biggestX - smallestX) / 2 - (drawing.name.TextBounds.X / 2), smallestY - drawing.name.TextBounds.Y - 2))
+                drawing.name.Transparency = transparency
+                drawing.name_outline.Text = drawing.name.Text
+                drawing.name_outline.Font = drawing.name.Font
+                drawing.name_outline.Size = drawing.name.Size
+                drawing.name_outline.Position = drawing.name.Position + NEWVEC2(1,1)
+                drawing.name_outline.Transparency = transparency
+            end
+
+            -- health
+            drawing.health.Visible = health ~= 100 and health ~= 0  and esp[flag .. 'health']
+            if drawing.health.Visible then
+                drawing.health.Text = tostring(health)
+                drawing.health.Font = Drawing.Fonts[esp.font]
+                drawing.health.Size = esp.textsize
+                drawing.health.Outline = esp.outlines
+                drawing.health.Color = esp[ flag .. 'healthbar'][3]:Lerp(esp[ flag .. 'healthbar'][2], health / 100)
+                drawing.health.Position = esp:floorvector(NEWVEC2(smallestX - 3, drawing.bar.Position.Y + drawing.bar.Size.Y - drawing.health.TextBounds.Y + 5))
+                drawing.health.Transparency = transparency
+            end
+
+            -- weapon
+            drawing.weapon.Visible = esp[ flag .. 'weapon'][1]
+            drawing.weapon_outline.Visible = esp.outlines and drawing.weapon.Visible
+            if drawing.weapon.Visible then
+                drawing.weapon.Text = LOWER(character.EquippedTool.Value) or nil
+                drawing.weapon.Font = Drawing.Fonts[esp.font]
+                drawing.weapon.Size = esp.textsize
+                drawing.weapon.Color = esp[ flag .. 'weapon'][2]
+                drawing.weapon.Position = esp:floorvector(NEWVEC2(smallestX + (biggestX - smallestX) / 2 - (drawing.weapon.TextBounds.X / 2), biggestY + 4))
+                drawing.weapon.Transparency = transparency
+                drawing.weapon_outline.Text = drawing.weapon.Text
+                drawing.weapon_outline.Font = drawing.weapon.Font
+                drawing.weapon_outline.Size = drawing.weapon.Size
+                drawing.weapon_outline.Position = drawing.weapon.Position + NEWVEC2(1,1)
+                drawing.weapon_outline.Transparency = transparency
+            end
+        else
+            esp:disable(player)
+        end
+    end
+end
+
+for i, plr in next, players:GetPlayers() do
+    esp:add(plr)
+end
+esp:connect(players.PlayerAdded, function(plr)
+    esp:add(plr)
+end)
+esp:connect(players.PlayerRemoving, function(plr)
+    esp:remove(plr)
+end)
+
+esp:bindtorenderstep('esp', 999, esp.update)
+
+return esp
