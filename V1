@@ -14,8 +14,8 @@ local Window = Fluent:CreateWindow({
 
 local Tabs = {
     Main = Window:AddTab({ Title = "Main", Icon = "" }),
-    Settings = Window:AddTab({ Title = "Settings", Icon = "" })
-    Misc = Window:AddTab({ Title = "Misc", Icon = "" })
+    Settings = Window:AddTab({ Title = "Settings", Icon = "" }),
+    Misc = Window:AddTab({ Title = "Misc", Icon = "" }),
     Credits = Window:AddTab({ Title = "Credits", Icon = "" })
 }
 
@@ -35,6 +35,7 @@ do
     })
 end
 
+-- Main Tab Content
 Tabs.Main:AddParagraph({
     Title = "Main",
     Content = ""
@@ -193,6 +194,7 @@ local JumpPowerSlider = Tabs.Main:AddSlider("JumpPowerSlider", {
 WalkSpeedSlider:SetValue(16)
 JumpPowerSlider:SetValue(50)
 
+-- Misc Tab Content
 Tabs.Misc:AddParagraph({
     Title = "Misc",
     Content = "Miscellaneous options."
@@ -248,11 +250,11 @@ end)
 
 Options.LoopGodMode:SetValue(false)
 
+-- Credits Tab Content
 Tabs.Credits:AddParagraph({
     Title = "Credits",
     Content = "This was made by Jude and Corrupted. Also credits to Velocity."
 })
-
 
 -- SaveManager (Allows you to have a configuration system)
 -- InterfaceManager (Allows you to have a interface managment system)
@@ -277,7 +279,6 @@ SaveManager:SetFolder("FluentScriptHub/specific-game")
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
 
-
 Window:SelectTab(1)
 
 Fluent:Notify({
@@ -289,3 +290,6 @@ Fluent:Notify({
 -- You can use the SaveManager:LoadAutoloadConfig() to load a config
 -- which has been marked to be one that auto loads!
 SaveManager:LoadAutoloadConfig()
+
+-- Debug: Print tab creation
+print("Tabs created: Main, Settings, Misc, Credits")
