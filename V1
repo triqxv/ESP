@@ -12,14 +12,12 @@ local Window = Fluent:CreateWindow({
     MinimizeKey = Enum.KeyCode.LeftControl -- Used when there's no MinimizeKeybind
 })
 
---Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
 local Tabs = {
     Main = Window:AddTab({ Title = "Main", Icon = "" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "" })
-    Misc = Window:AddTab({ Title = "Misc", Icon = "" }),     -- Added a new tab called "Misc"
-    Credits = Window:AddTab({ Title = "Credits", Icon = "" }) -- Added a new tab called "Credits"
+    Misc = Window:AddTab({ Title = "Misc", Icon = "" })
+    Credits = Window:AddTab({ Title = "Credits", Icon = "" })
 }
-
 
 local Options = Fluent.Options
 
@@ -69,7 +67,7 @@ Tabs.Main:AddButton({
 
 Tabs.Main:AddButton({
     Title = "Respawn",
-    Description = "Respawn the player without Robux's!",
+    Description = "Respawn the player without Robux!",
     Callback = function()
         local Players = game:GetService("Players")
         local player = Players.LocalPlayer
@@ -99,7 +97,7 @@ Tabs.Main:AddButton({
     end
 })
 
-local Toggle = Tabs.Main:AddToggle("ESP", {Title = "ESP", Default = false })
+local Toggle = Tabs.Main:AddToggle("ESP", {Title = "ESP", Default = false})
 
 Toggle:OnChanged(function()
     if Options.ESP.Value then
@@ -170,7 +168,7 @@ local WalkSpeedSlider = Tabs.Main:AddSlider("WalkSpeedSlider", {
     Callback = function(Value)
         local Character = game.Players.LocalPlayer.Character
         if Character then
-            Character.Humanoid:SetAttribute("RealSpeed", tonumber(Value))
+            Character.Humanoid.WalkSpeed = Value
         end
     end
 })
@@ -186,7 +184,7 @@ local JumpPowerSlider = Tabs.Main:AddSlider("JumpPowerSlider", {
     Callback = function(Value)
         local Character = game.Players.LocalPlayer.Character
         if Character then
-            Character.Humanoid:SetAttribute("RealJumpHeight", tonumber(Value))
+            Character.Humanoid.JumpPower = Value
         end
     end
 })
@@ -194,53 +192,6 @@ local JumpPowerSlider = Tabs.Main:AddSlider("JumpPowerSlider", {
 -- Set initial values
 WalkSpeedSlider:SetValue(16)
 JumpPowerSlider:SetValue(50)
-
-Tabs.Server:AddParagraph({
-    Title = "Server Trolling",
-    Content = "A little troll."
-})
-
-Tabs.Server:AddButton({
-    Title = "Crash Server",
-    Description = "Attempt to crash the server",
-    Callback = function()
-        local Players = game:GetService("Players")
-        local player = Players.LocalPlayer
-        local Events = game:GetService("ReplicatedStorage"):FindFirstChild("Events")
-
-        if Events then
-            local Reset = Events:FindFirstChild("Reset")
-            local Respawn = Events:FindFirstChild("Respawn")
-            Fluent:Notify({
-                Title = "Server Trolling",
-                Content = "You have trolled the server",
-                Duration = 5
-            })
-            while task.wait() do
-                if Reset and Respawn then
-                    Reset:FireServer()
-                    Respawn:FireServer()
-                end
-            end
-        end
-    end
-})
-
-Tabs.Server:AddParagraph({
-    Title = "Settings UI Color",
-    Content = "Customize the UI color."
-})
-
-local Colorpicker = Tabs.Server:AddColorpicker("Colorpicker", {
-    Title = "Colorpicker",
-    Default = Color3.fromRGB(96, 205, 255)
-})
-
-Colorpicker:OnChanged(function()
-    print("Colorpicker changed:", Colorpicker.Value)
-end)
-
-Colorpicker:SetValueRGB(Color3.fromRGB(0, 255, 140))
 
 Tabs.Misc:AddParagraph({
     Title = "Misc",
@@ -302,22 +253,21 @@ Tabs.Credits:AddParagraph({
     Content = "This was made by Jude and Corrupted. Also credits to Velocity."
 })
 
- -- Hand the library over to our managers
- SaveManager:SetLibrary(Fluent)
- InterfaceManager:SetLibrary(Fluent)
- 
- -- Ignore keys that are used by ThemeManager.
- -- (we dont want configs to save themes, do we?)
- SaveManager:IgnoreThemeSettings()
- 
- -- You can add indexes of elements the save manager should ignore
- SaveManager:SetIgnoreIndexes({})
- 
- -- use case for doing it this way:
- -- a script hub could have themes in a global folder
- -- and game configs in a separate folder per game
- InterfaceManager:SetFolder("FluentScriptHub")
- SaveManager:SetFolder("FluentScriptHub/Evade")
- 
- InterfaceManager:BuildInterfaceSection(Tabs.Settings)
- SaveManager:BuildConfigSection(Tabs.Settings)
+-- Hand the library over to our managers
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+-- Ignore keys that are used by ThemeManager.
+SaveManager:IgnoreThemeSettings()
+
+-- You can add indexes of elements the save manager should ignore
+SaveManager:SetIgnoreIndexes({})
+
+-- use case for doing it this way:
+-- a script hub could have themes in a global folder
+-- and game configs in a separate folder per game
+InterfaceManager:SetFolder("FluentScriptHub")
+SaveManager:SetFolder("FluentScriptHub/Evade")
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
